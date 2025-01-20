@@ -1,12 +1,21 @@
-'use client'
+'use client';
+
 import React, { useState } from 'react';
-import Link from 'next/link'; // Import Next.js Link component
+import Link from 'next/link';
+import { usePathname } from 'next/navigation'; // Import usePathname for current path
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const pathname = usePathname(); // Get the current pathname
+
+  // Function to dynamically set active link styles
+  const getLinkClass = (path: string) =>
+    pathname === path
+      ? 'text-orange-500 font-semibold'
+      : 'text-gray-700 hover:text-orange-500';
 
   return (
-    <nav className="bg-white shadow-md py-4 px-4 md:px-8 sticky top-1 z-50">
+    <nav className="bg-white shadow-md py-4 px-4 md:px-8 sticky top-0 z-50">
       <div className="flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center space-x-4">
@@ -38,22 +47,16 @@ const Navbar = () => {
 
         {/* Navigation Links */}
         <div className="hidden md:flex items-center space-x-6">
-          <Link href="/" className="text-blue-500 font-semibold">
+          <Link href="/" className={getLinkClass('/')}>
             Home
           </Link>
-          <Link href="/about" className="text-gray-700">
-            About
-          </Link>
-          <Link href="/services" className="text-gray-700">
+          <Link href="/services" className={getLinkClass('/services')}>
             Services
           </Link>
-          <Link href="/pages" className="text-gray-700">
-            Pages
-          </Link>
-          <Link href="/shop" className="text-gray-700">
+          <Link href="/shop" className={getLinkClass('/shop')}>
             Shop
           </Link>
-          <Link href="/news" className="text-gray-700">
+          <Link href="/news" className={getLinkClass('/news')}>
             News
           </Link>
         </div>
@@ -70,22 +73,22 @@ const Navbar = () => {
       {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="md:hidden mt-4 space-y-2">
-          <Link href="/" className="block text-blue-500 font-semibold">
+          <Link href="/" className={getLinkClass('/')}>
             Home
           </Link>
-          <Link href="/about" className="block text-gray-700">
+          <Link href="/about" className={getLinkClass('/about')}>
             About
           </Link>
-          <Link href="/services" className="block text-gray-700">
+          <Link href="/services" className={getLinkClass('/services')}>
             Services
           </Link>
-          <Link href="/pages" className="block text-gray-700">
+          <Link href="/pages" className={getLinkClass('/pages')}>
             Pages
           </Link>
-          <Link href="/shop" className="block text-gray-700">
+          <Link href="/shop" className={getLinkClass('/shop')}>
             Shop
           </Link>
-          <Link href="/news" className="block text-gray-700">
+          <Link href="/news" className={getLinkClass('/news')}>
             News
           </Link>
           <Link
