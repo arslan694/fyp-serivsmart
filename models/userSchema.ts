@@ -7,7 +7,6 @@ export interface IUser extends Document {
   password: string;
   role: "superadmin" | "user"; // Enum to define roles
 }
-
 // Define Mongoose Schema
 const UserSchema = new Schema<IUser>({
   email: {
@@ -24,6 +23,10 @@ const UserSchema = new Schema<IUser>({
     type: String,
     enum: ["superadmin", "user"], // Define roles
     default: "user",
+  },
+  username: {
+    type: String,
+    required: true,
   },
 });
 
