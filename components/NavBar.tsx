@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation'; // Import usePathname for current path
+import React, { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation"; // Import usePathname for current path
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,8 +11,8 @@ const Navbar = () => {
   // Function to dynamically set active link styles
   const getLinkClass = (path: string) =>
     pathname === path
-      ? 'text-orange-500 font-semibold'
-      : 'text-gray-700 hover:text-orange-500';
+      ? "text-orange-500 font-semibold"
+      : "text-gray-700 hover:text-orange-500";
 
   return (
     <nav className="bg-white shadow-md py-4 px-4 md:px-8 sticky top-0 z-50">
@@ -47,48 +47,58 @@ const Navbar = () => {
 
         {/* Navigation Links */}
         <div className="hidden md:flex items-center space-x-6">
-          <Link href="/" className={getLinkClass('/')}>
+          <Link href="/" className={getLinkClass("/")}>
             Home
           </Link>
-          <Link href="/services" className={getLinkClass('/services')}>
+          <Link href="/services" className={getLinkClass("/services")}>
             Services
           </Link>
-          <Link href="/shop" className={getLinkClass('/shop')}>
+          <Link href="/shop" className={getLinkClass("/shop")}>
             Shop
           </Link>
-          <Link href="/news" className={getLinkClass('/news')}>
+          <Link href="/news" className={getLinkClass("/news")}>
             News
           </Link>
         </div>
 
-        {/* Appointment Button */}
-        <Link
-          href="/appointment"
-          className="hidden md:block bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600"
-        >
-          Appointment
-        </Link>
+        <div className="flex flex-row gap-5">
+          {/* Appointment Button */}
+          <Link
+            href="/appointment"
+            className="hidden md:block bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600"
+          >
+            Appointment
+          </Link>
+
+          {/* Login Button */}
+          <Link
+            href="/login"
+            className="hidden md:block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-orange-600"
+          >
+            Login
+          </Link>
+        </div>
       </div>
 
       {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="md:hidden mt-4 space-y-2">
-          <Link href="/" className={getLinkClass('/')}>
+          <Link href="/" className={getLinkClass("/")}>
             Home
           </Link>
-          <Link href="/about" className={getLinkClass('/about')}>
+          <Link href="/about" className={getLinkClass("/about")}>
             About
           </Link>
-          <Link href="/services" className={getLinkClass('/services')}>
+          <Link href="/services" className={getLinkClass("/services")}>
             Services
           </Link>
-          <Link href="/pages" className={getLinkClass('/pages')}>
+          <Link href="/pages" className={getLinkClass("/pages")}>
             Pages
           </Link>
-          <Link href="/shop" className={getLinkClass('/shop')}>
+          <Link href="/shop" className={getLinkClass("/shop")}>
             Shop
           </Link>
-          <Link href="/news" className={getLinkClass('/news')}>
+          <Link href="/news" className={getLinkClass("/news")}>
             News
           </Link>
           <Link

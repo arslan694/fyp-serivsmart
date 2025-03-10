@@ -1,8 +1,9 @@
-// Appointment.js
-'use client'
+"use client";
 
 import React, { useState } from "react";
 import heroImage from "../public/images/appointment_hero.png";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Appointment = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
@@ -15,28 +16,35 @@ const Appointment = () => {
     vehicleMake: "",
     vehicleModel: "",
     date: "",
+    timeSlot: "",
     comment: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [responseMessage, setResponseMessage] = useState("");
 
-  // Handle form input changes
+  const pricingOptions = {
+    "Sedan Car": { prices: [500, 1000, 2000], times: ["20 Minutes", "40 Minutes", "1h 20 Minutes"] },
+    "Minivan Car": { prices: [700, 1200, 2500], times: ["30 Minutes", "50 Minutes", "1h 30 Minutes"] },
+    "Microbus": { prices: [1000, 1500, 2800], times: ["40 Minutes", "1h", "1h 40 Minutes"] },
+    "SUV Car": { prices: [700, 1200, 2500], times: ["30 Minutes", "50 Minutes", "1h 30 Minutes"] },
+    "Mid Size SUV": { prices: [800, 1300, 2400], times: ["40 Minutes", "1h", "1h 30 Minutes"] },
+    "Full Size SUV": { prices: [1000, 1500, 2800], times: ["50 Minutes", "1h 20 Minutes", "2h"] },
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle vehicle selection
   const handleVehicleSelect = (type: string) => {
     setSelectedVehicle(type);
+    setSelectedPlan(null); // Reset selected plan when vehicle type changes
   };
 
-  // Handle plan selection
   const handlePlanSelect = (plan: string) => {
     setSelectedPlan(plan);
   };
 
-  // Handle extra feature selection
   const toggleExtraFeature = (feature: string) => {
     if (extraFeatures.includes(feature)) {
       setExtraFeatures(extraFeatures.filter((f) => f !== feature));
@@ -45,19 +53,37 @@ const Appointment = () => {
     }
   };
 
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 8; hour <= 21; hour++) {
+      const period = hour < 12 ? "AM" : "PM";
+      const formattedHour = hour > 12 ? hour - 12 : hour;
+      slots.push(`${formattedHour}:00 ${period}`);
+      slots.push(`${formattedHour}:30 ${period}`);
+    }
+    return slots;
+  };
+
+  const timeSlots = generateTimeSlots();
+
+  const handleInputChangeTwo = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
-    if (!selectedVehicle || !selectedPlan) {
-      setResponseMessage("Please select a vehicle type and pricing plan.");
+
+    if (!selectedVehicle || !selectedPlan || !formData.timeSlot) {
+      setResponseMessage("Please select a vehicle type, pricing plan, and time slot.");
+      toast.error("Please select a vehicle type, pricing plan, and time slot.");
       return;
     }
-  
+
     setIsSubmitting(true);
     setResponseMessage("");
-  
+
     try {
-      const response = await fetch("/api", { // Adjusted to the correct API route
+      const response = await fetch("/api", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -69,9 +95,10 @@ const Appointment = () => {
           extraFeatures,
         }),
       });
-  
+
       if (response.ok) {
         setResponseMessage("Booking confirmed!");
+        toast.success("Booking confirmed!");
         setFormData({
           name: "",
           email: "",
@@ -79,6 +106,7 @@ const Appointment = () => {
           vehicleMake: "",
           vehicleModel: "",
           date: "",
+          timeSlot: "",
           comment: "",
         });
         setSelectedVehicle(null);
@@ -87,15 +115,16 @@ const Appointment = () => {
       } else {
         const errorData = await response.json();
         setResponseMessage(`Error: ${errorData.message || "Unable to confirm booking."}`);
+        toast.error(`Error: ${errorData.message || "Unable to confirm booking."}`);
       }
     } catch (error) {
       console.error("Error:", error);
-      setResponseMessage('Error occurred while submitting the form.');
+      setResponseMessage("Error occurred while submitting the form.");
+      toast.error("Error occurred while submitting the form.");
     } finally {
       setIsSubmitting(false);
     }
   };
-  
 
   return (
     <div className="py-8 px-4 md:px-16">
@@ -115,7 +144,7 @@ const Appointment = () => {
       <div className="mb-8">
         <h2 className="text-xl md:text-2xl font-bold mb-4">Select Vehicle Type</h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-          {["Sedan Car", "Minivan Car", "Microbus", "SUV Car"].map((type) => (
+          {Object.keys(pricingOptions).map((type) => (
             <button
               key={type}
               className={`p-4 border rounded-md text-center text-sm md:text-base ${
@@ -133,29 +162,19 @@ const Appointment = () => {
       <div className="mb-8">
         <h2 className="text-xl md:text-2xl font-bold mb-4">Select Pricing Plan</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-          {["500", "1000", "2000"].map((price, index) => (
+          {selectedVehicle && pricingOptions[selectedVehicle].prices.map((price, index) => (
             <button
               key={index}
               className={`p-4 border rounded-md text-center text-sm md:text-base ${
-                selectedPlan === price ? "bg-orange-500 text-white" : "bg-gray-100"
+                selectedPlan === price.toString() ? "bg-orange-500 text-white" : "bg-gray-100"
               }`}
-              onClick={() => handlePlanSelect(price)}
+              onClick={() => handlePlanSelect(price.toString())}
             >
               <h3 className="font-semibold">
-                {index === 0
-                  ? "Basic Wash"
-                  : index === 1
-                  ? "Full Wash"
-                  : "General Wash"}
+                {index === 0 ? "Basic Wash" : index === 1 ? "Full Wash" : "General Wash"}
               </h3>
               <p className="text-lg font-bold">{price}</p>
-              <p className="text-sm text-gray-500">
-                {index === 0
-                  ? "20 Minutes"
-                  : index === 1
-                  ? "40 Minutes"
-                  : "1h 20 Minutes"}
-              </p>
+              <p className="text-sm text-gray-500">{pricingOptions[selectedVehicle].times[index]}</p>
             </button>
           ))}
         </div>
@@ -165,19 +184,23 @@ const Appointment = () => {
       <div className="mb-8">
         <h2 className="text-xl md:text-2xl font-bold mb-4">Choose Extra Features</h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          {["Tire Shine", "Express Interior", "Interior Vacuum", "Dashboard Polish & Clean", "Engine Wash"].map(
-            (feature) => (
-              <button
-                key={feature}
-                className={`p-4 border rounded-md text-center text-sm md:text-base ${
-                  extraFeatures.includes(feature) ? "bg-orange-500 text-white" : "bg-gray-100"
-                }`}
-                onClick={() => toggleExtraFeature(feature)}
-              >
-                {feature}
-              </button>
-            )
-          )}
+          {[
+            "Tire Shine",
+            "Express Interior",
+            "Interior Vacuum",
+            "Dashboard Polish & Clean",
+            "Engine Wash",
+          ].map((feature) => (
+            <button
+              key={feature}
+              className={`p-4 border rounded-md text-center text-sm md:text-base ${
+                extraFeatures.includes(feature) ? "bg-orange-500 text-white" : "bg-gray-100"
+              }`}
+              onClick={() => toggleExtraFeature(feature)}
+            >
+              {feature}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -233,6 +256,20 @@ const Appointment = () => {
               onChange={handleInputChange}
               className="p-2 border rounded-md w-full text-sm md:text-base"
             />
+
+            <select
+              name="timeSlot"
+              value={formData.timeSlot}
+              onChange={handleInputChangeTwo}
+              className="p-2 border rounded-md w-full text-sm md:text-base"
+            >
+              <option value="">Select Time Slot</option>
+              {timeSlots.map((slot, index) => (
+                <option key={index} value={slot}>
+                  {slot}
+                </option>
+              ))}
+            </select>
           </div>
           <textarea
             name="comment"
@@ -252,9 +289,14 @@ const Appointment = () => {
           </button>
         </form>
         {responseMessage && (
-          <p className="mt-4 text-center text-sm text-red-600">{responseMessage}</p>
+          <p className="mt-4 text-center text-sm text-red-600">
+            {responseMessage}
+          </p>
         )}
       </div>
+
+      {/* Toast Container */}
+      <ToastContainer />
     </div>
   );
 };

@@ -1,12 +1,11 @@
-
-import Appointment from '@/components/Appointment'
+import Login from '@/components/Login';
 import React from 'react'
 import { ToastContainer } from "react-toastify";
 
-export const Appointmentpage = () => {
+export const Loginpage = () => {
   return (
     <div>
-        <Appointment/>
+        <Login/>
         <ToastContainer
         position="top-right"
         autoClose={5000}
@@ -23,4 +22,4 @@ export const Appointmentpage = () => {
   )
 }
 
-export default Appointmentpage
+export default Loginpage

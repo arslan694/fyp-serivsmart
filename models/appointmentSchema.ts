@@ -8,6 +8,7 @@ export interface Appointment extends Document {
   vehicleMake: string;
   vehicleModel: string;
   date: string;
+  slot: string;  // Added Slot Field
   comment: string;
   selectedVehicle: string | null;
   selectedPlan: string | null;
@@ -40,22 +41,31 @@ const appointmentSchema = new Schema<Appointment>({
     type: String, // Store as a string or use Date type if preferred
     required: true,
   },
+  slot: {
+    type: String,
+    enum: [
+      "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM", "12:00 PM",
+      "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM",
+      "06:00 PM", "07:00 PM", "08:00 PM", "09:00 PM"
+    ], // Slot Timings
+    required: true,
+  },
   comment: {
     type: String,
     required: false,
   },
   selectedVehicle: {
     type: String,
-    enum: ["Sedan Car", "Minivin Car", "Microbus", "SUV Car"], // Example enum for vehicle types
+    enum: ["Sedan Car", "Minivan Car", "Microbus", "SUV Car"],
     required: true,
   },
   selectedPlan: {
     type: String,
-    enum: ["500", "1000", "2000"], // Example enum for pricing plans
+    enum: ["500", "1000", "2000"],
     required: true,
   },
   extraFeatures: {
-    type: [String], // Array of strings for extra features
+    type: [String],
     default: [],
   },
 });

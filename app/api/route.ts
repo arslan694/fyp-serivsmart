@@ -1,15 +1,24 @@
 import { NextResponse } from 'next/server';
 import { MongoClient } from 'mongodb';
+import { POST as loginPOST } from "./auth/login/route";
 
 // MongoDB URI
-const uri = "mongodb+srv://rajputarslan693:fypappointmentdata@appointmentscluster.yyhmq.mongodb.net/";
+const uri = "mongodb+srv://alihassan:87654321@cluster0.okm6n.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 if (!uri) {
   throw new Error('MongoDB URI is not defined in environment variables.');
 }
 
-// POST handler
+// POST handler for appointment creation and login
 export async function POST(req: Request) {
+  const url = new URL(req.url);
+  
+  // Check if request is for login or appointment
+  if (url.pathname === "/api/auth/login") {
+    return loginPOST(req); // Call login function
+  }
+
+  // Otherwise, handle appointment creation
   const client = new MongoClient(uri);
 
   try {
@@ -26,13 +35,4 @@ export async function POST(req: Request) {
   } finally {
     await client.close();
   }
-}
-
-// Optional: Handle unsupported HTTP methods
-export async function GET() {
-  return NextResponse.json({ message: 'GET method not supported on this route.' }, { status: 405 });
-}
-
-export async function PUT() {
-  return NextResponse.json({ message: 'PUT method not supported on this route.' }, { status: 405 });
 }
