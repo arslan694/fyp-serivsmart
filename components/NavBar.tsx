@@ -1,17 +1,29 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation"; // Import usePathname for current path
+import { useRouter } from "next/navigation"; // Import useRouter
+import { usePathname } from "next/navigation"; // Import usePathname
 
 const Navbar = ({ user, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const pathname = usePathname(); // Get the current pathname
+  const pathname = usePathname();
+  const router = useRouter(); // Initialize router
 
   // Function to dynamically set active link styles
   const getLinkClass = (path) =>
     pathname === path
       ? "text-orange-500 font-semibold"
       : "text-gray-700 hover:text-orange-500";
+
+  // Function to handle Appointment button click
+  const handleAppointmentClick = (e) => {
+    e.preventDefault();
+    if (!user) {
+      router.push("/login"); // Redirect to login if not logged in
+    } else {
+      router.push("/appointment"); // Proceed if logged in
+    }
+  };
 
   return (
     <nav className="bg-white shadow-md py-4 px-4 md:px-8 sticky top-0 z-50">
@@ -61,13 +73,13 @@ const Navbar = ({ user, onLogout }) => {
         </div>
 
         <div className="flex flex-row gap-5">
-          {/* Appointment Button */}
-          <Link
-            href="/appointment"
+          {/* Appointment Button with Check */}
+          <button
+            onClick={handleAppointmentClick}
             className="hidden md:block bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600"
           >
             Appointment
-          </Link>
+          </button>
 
           {user ? (
             <div className="relative">
@@ -75,7 +87,7 @@ const Navbar = ({ user, onLogout }) => {
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-md"
               >
-                <img src="/user-icon.png" alt="User  Icon" className="h-6 w-6" />
+                <img src="/user-icon.png" alt="User Icon" className="h-6 w-6" />
                 <span>{user.name}</span>
               </button>
 
@@ -122,12 +134,12 @@ const Navbar = ({ user, onLogout }) => {
           <Link href="/news" className={getLinkClass("/news")}>
             News
           </Link>
-          <Link
-            href="/appointment"
+          <button
+            onClick={handleAppointmentClick}
             className="block w-full bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600"
           >
             Appointment
-          </Link>
+          </button>
         </div>
       )}
     </nav>
