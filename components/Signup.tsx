@@ -4,29 +4,30 @@ import { toast } from "react-toastify";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
-    name: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
     role: "user",
   });
+  const [loading, setLoading] = useState(false);
 
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check if passwords match
     if (formData.password !== formData.confirmPassword) {
       toast.error("Passwords do not match!");
       return;
     }
 
+    setLoading(true);
     try {
       const response = await fetch("/api/auth/signup", {
         method: "POST",
@@ -35,7 +36,6 @@ const Signup = () => {
       });
 
       const data = await response.json();
-
       if (response.ok) {
         toast.success("Signup successful!");
         setTimeout(() => (window.location.href = "/login"), 2000);
@@ -45,6 +45,8 @@ const Signup = () => {
     } catch (error) {
       console.error("Signup Error:", error);
       toast.error("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,28 +56,22 @@ const Signup = () => {
         <h2 className="text-2xl font-bold text-center mb-6">Sign Up</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
               Name
             </label>
             <input
               type="text"
-              name="name" // Change this to "name"
-              id="name" // Change this to "name"
-              value={formData.name}
+              name="username"
+              id="username"
+              value={formData.username}
               onChange={handleInputChange}
               required
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               placeholder="Enter your name"
             />
           </div>
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
               Email
             </label>
             <input
@@ -85,15 +81,12 @@ const Signup = () => {
               value={formData.email}
               onChange={handleInputChange}
               required
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               placeholder="Enter your email"
             />
           </div>
           <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
               Password
             </label>
             <input
@@ -103,15 +96,12 @@ const Signup = () => {
               value={formData.password}
               onChange={handleInputChange}
               required
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               placeholder="Enter your password"
             />
           </div>
           <div>
-            <label
-              htmlFor="confirmPassword"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
               Confirm Password
             </label>
             <input
@@ -121,15 +111,18 @@ const Signup = () => {
               value={formData.confirmPassword}
               onChange={handleInputChange}
               required
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               placeholder="Confirm your password"
             />
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-200"
+            disabled={loading}
+            className={`w-full py-2 rounded-md text-white transition duration-200 ${
+              loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600"
+            }`}
           >
-            Sign Up
+            {loading ? "Signing Up..." : "Sign Up"}
           </button>
         </form>
         <p className="mt-4 text-center text-sm text-gray-600">

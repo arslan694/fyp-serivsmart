@@ -18,8 +18,8 @@ export async function POST(req: Request) {
   await connectDB(); // Ensure DB is connected
 
   try {
-    const { name, email, password, confirmPassword, role } = await req.json();
-    console.log({ name, email, password, confirmPassword, role });
+    const { username, email, password, confirmPassword, role } = await req.json();
+    console.log({ username, email, password, confirmPassword, role });
 
     // Check if passwords match
     if (password !== confirmPassword) {
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
 
     // Create a new user
     const newUser = new User({
-      name: name,
+      username: username,
       email,
       password: hashedPassword,
       role: "user", // Default role
