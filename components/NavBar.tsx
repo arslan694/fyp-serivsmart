@@ -1,13 +1,24 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation"; // Import usePathname for current path
+import { usePathname } from "next/navigation";
 
-const Navbar = ({ user, onLogout }) => {
+const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const pathname = usePathname(); // Get the current pathname
+  const [userEmail, setUserEmail] = useState(null);
+  const pathname = usePathname();
 
-  // Function to dynamically set active link styles
+  useEffect(() => {
+    // Retrieve email from local storage on mount
+    const email = localStorage.getItem("userEmail");
+    setUserEmail(email);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("userEmail"); // Remove email from local storage
+    setUserEmail(null); // Update state to reflect logout
+  };
+
   const getLinkClass = (path) =>
     pathname === path
       ? "text-orange-500 font-semibold"
@@ -16,14 +27,12 @@ const Navbar = ({ user, onLogout }) => {
   return (
     <nav className="bg-white shadow-md py-4 px-4 md:px-8 sticky top-0 z-50">
       <div className="flex items-center justify-between">
-        {/* Logo */}
         <div className="flex items-center space-x-4">
           <Link href="/" className="flex items-center space-x-2">
             <img src="/logo.png" alt="Logo" className="h-10" />
           </Link>
         </div>
 
-        {/* Hamburger Menu for Mobile */}
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className="md:hidden text-gray-700 focus:outline-none"
@@ -44,24 +53,16 @@ const Navbar = ({ user, onLogout }) => {
           </svg>
         </button>
 
-        {/* Navigation Links */}
         <div className="hidden md:flex items-center space-x-6">
-          <Link href="/" className={getLinkClass("/")}>
-            Home
-          </Link>
+          <Link href="/" className={getLinkClass("/")}>Home</Link>
           <Link href="/services" className={getLinkClass("/services")}>
             Services
           </Link>
-          <Link href="/shop" className={getLinkClass("/shop")}>
-            Shop
-          </Link>
-          <Link href="/news" className={getLinkClass("/news")}>
-            News
-          </Link>
+          <Link href="/shop" className={getLinkClass("/shop")}>Shop</Link>
+          <Link href="/news" className={getLinkClass("/news")}>News</Link>
         </div>
 
         <div className="flex flex-row gap-5">
-          {/* Appointment Button */}
           <Link
             href="/appointment"
             className="hidden md:block bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600"
@@ -69,27 +70,13 @@ const Navbar = ({ user, onLogout }) => {
             Appointment
           </Link>
 
-          {user ? (
-            <div className="relative">
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-md"
-              >
-                <img src="/user-icon.png" alt="User  Icon" className="h-6 w-6" />
-                <span>{user.name}</span>
-              </button>
-
-              {isMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md">
-                  <button
-                    onClick={onLogout}
-                    className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  >
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
+          {userEmail ? (
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+            >
+              Logout
+            </button>
           ) : (
             <Link
               href="/login"
@@ -100,36 +87,6 @@ const Navbar = ({ user, onLogout }) => {
           )}
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="md:hidden mt-4 space-y-2">
-          <Link href="/" className={getLinkClass("/")}>
-            Home
-          </Link>
-          <Link href="/about" className={getLinkClass("/about")}>
-            About
-          </Link>
-          <Link href="/services" className={getLinkClass("/services")}>
-            Services
-          </Link>
-          <Link href="/pages" className={getLinkClass("/pages")}>
-            Pages
-          </Link>
-          <Link href="/shop" className={getLinkClass("/shop")}>
-            Shop
-          </Link>
-          <Link href="/news" className={getLinkClass("/news")}>
-            News
-          </Link>
-          <Link
-            href="/appointment"
-            className="block w-full bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600"
-          >
-            Appointment
-          </Link>
-        </div>
-      )}
     </nav>
   );
 };

@@ -38,7 +38,7 @@ export async function POST(req: Request) {
 
     // Return role-based redirection info
     return NextResponse.json(
-      { message: "Login successful", role },
+      { message: "Login successful", user: { email: user.email, role } },
       { status: 200 }
     );
 

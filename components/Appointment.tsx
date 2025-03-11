@@ -27,11 +27,10 @@ const Appointment = () => {
 
   // Mock function to check if the user is logged in
   const isLoggedIn = () => {
-    // Replace this with your actual authentication check
-    // For example, if using next-auth: const { data: session } = useSession();
-    return localStorage.getItem("isLoggedIn") === "true"; // Example using localStorage
+    const userEmail = localStorage.getItem("userEmail"); // Assuming user email is stored in localStorage
+    return userEmail !== null; // Return true if email exists
   };
-
+  
   const pricingOptions = {
     "Sedan Car": { prices: [500, 1000, 2000], times: ["20 Minutes", "40 Minutes", "1h 20 Minutes"] },
     "Minivan Car": { prices: [700, 1200, 2500], times: ["30 Minutes", "50 Minutes", "1h 30 Minutes"] },
@@ -81,23 +80,24 @@ const Appointment = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Check if the user is logged in
-    if (!isLoggedIn()) {
+  
+    const userEmail = localStorage.getItem("userEmail");
+  
+    if (!userEmail) {
       toast.error("Please log in to confirm your booking.");
-      router.push("/login"); // Redirect to the login page
-      return; // Stop further execution
+      router.push("/login"); // Redirect to login page
+      return;
     }
-
+  
     if (!selectedVehicle || !selectedPlan || !formData.timeSlot) {
       setResponseMessage("Please select a vehicle type, pricing plan, and time slot.");
       toast.error("Please select a vehicle type, pricing plan, and time slot.");
       return;
     }
-
+  
     setIsSubmitting(true);
     setResponseMessage("");
-
+  
     try {
       const response = await fetch("/api", {
         method: "POST",
@@ -106,12 +106,13 @@ const Appointment = () => {
         },
         body: JSON.stringify({
           ...formData,
+          email: userEmail, // Include user email in the booking data
           selectedVehicle,
           selectedPlan,
           extraFeatures,
         }),
       });
-
+  
       if (response.ok) {
         setResponseMessage("Booking confirmed!");
         toast.success("Booking confirmed!");
@@ -141,6 +142,7 @@ const Appointment = () => {
       setIsSubmitting(false);
     }
   };
+  
 
   return (
     <div className="py-8 px-4 md:px-16">

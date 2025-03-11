@@ -1,18 +1,24 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Navbar from "./Navbar"; // Import the Navbar component
+import Navbar from "./Navbar"; // Import Navbar component
 
 const Login = () => {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [user, setUser ] = useState(null); // State to store user info
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const storedEmail = localStorage.getItem("userEmail");
+    if (storedEmail) {
+      setUser({ email: storedEmail }); // Store only email in state
+    }
+  }, []);
+  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -22,51 +28,49 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
+  
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-
+  
       const data = await response.json();
       setLoading(false);
-
-      if (!response.ok) {
-        toast.error(data.message); // Show error toast
+  
+      if (!response.ok || !data.user) {
+        toast.error(data.message || "Login failed!");
         return;
       }
-
-      setUser (data.user); // Store user info
+  
+      setUser(data.user);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("userEmail", data.user.email); 
+  
       toast.success("Login successful! Redirecting...");
-
       setTimeout(() => {
-        // Redirect based on role after showing toast
-        if (data.role === "superadmin") {
-          router.push("/admin-dashboard");
-        } else {
-          router.push("/");
-        }
+        router.push(data.user.role === "superadmin" ? "/admin-dashboard" : "/");
       }, 2000);
-      
     } catch (error) {
       setLoading(false);
       toast.error("Something went wrong. Please try again.");
       console.error("Login error:", error);
     }
   };
-
+  
+  
   const handleLogout = () => {
-    setUser (null); // Clear user state
-    router.push("/login"); // Redirect to login page
+    setUser (null);
+    localStorage.removeItem("user"); // Remove user from storage
+    router.push("/login");
   };
 
   return (
     <div>
       <ToastContainer position="top-right" autoClose={3000} />
-      {/* <Navbar user={user} onLogout={handleLogout} /> Pass user and logout function to Navbar */}
-      
+      {/* <Navbar user={user} onLogout={handleLogout} /> */}
+
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="bg-white shadow-md rounded-lg p-8 w-96">
           <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
