@@ -4,8 +4,10 @@ import React, { useState } from "react";
 import heroImage from "../public/images/appointment_hero.png";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useRouter } from "next/navigation"; // Import useRouter for redirection
 
 const Appointment = () => {
+  const router = useRouter(); // Initialize useRouter
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [extraFeatures, setExtraFeatures] = useState<string[]>([]);
@@ -22,6 +24,13 @@ const Appointment = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [responseMessage, setResponseMessage] = useState("");
+
+  // Mock function to check if the user is logged in
+  const isLoggedIn = () => {
+    // Replace this with your actual authentication check
+    // For example, if using next-auth: const { data: session } = useSession();
+    return localStorage.getItem("isLoggedIn") === "true"; // Example using localStorage
+  };
 
   const pricingOptions = {
     "Sedan Car": { prices: [500, 1000, 2000], times: ["20 Minutes", "40 Minutes", "1h 20 Minutes"] },
@@ -72,6 +81,13 @@ const Appointment = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check if the user is logged in
+    if (!isLoggedIn()) {
+      toast.error("Please log in to confirm your booking.");
+      router.push("/login"); // Redirect to the login page
+      return; // Stop further execution
+    }
 
     if (!selectedVehicle || !selectedPlan || !formData.timeSlot) {
       setResponseMessage("Please select a vehicle type, pricing plan, and time slot.");
