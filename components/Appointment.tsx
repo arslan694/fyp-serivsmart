@@ -13,9 +13,9 @@ const Appointment = () => {
   const [extraFeatures, setExtraFeatures] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
     phone: "",
     vehicleMake: "",
+    vehicleName: "",
     vehicleModel: "",
     date: "",
     timeSlot: "",
@@ -27,20 +27,40 @@ const Appointment = () => {
 
   // Mock function to check if the user is logged in
   const isLoggedIn = () => {
-    const userEmail = localStorage.getItem("userEmail"); // Assuming user email is stored in localStorage
+    const userEmail = sessionStorage.getItem("userEmail"); // Assuming user email is stored in sessionStorage
     return userEmail !== null; // Return true if email exists
   };
-  
+
   const pricingOptions = {
-    "Sedan Car": { prices: [500, 1000, 2000], times: ["20 Minutes", "40 Minutes", "1h 20 Minutes"] },
-    "Minivan Car": { prices: [700, 1200, 2500], times: ["30 Minutes", "50 Minutes", "1h 30 Minutes"] },
-    "Microbus": { prices: [1000, 1500, 2800], times: ["40 Minutes", "1h", "1h 40 Minutes"] },
-    "SUV Car": { prices: [700, 1200, 2500], times: ["30 Minutes", "50 Minutes", "1h 30 Minutes"] },
-    "Mid Size SUV": { prices: [800, 1300, 2400], times: ["40 Minutes", "1h", "1h 30 Minutes"] },
-    "Full Size SUV": { prices: [1000, 1500, 2800], times: ["50 Minutes", "1h 20 Minutes", "2h"] },
+    "Sedan Car": {
+      prices: [500, 1000, 2000],
+      times: ["20 Minutes", "40 Minutes", "1h 20 Minutes"],
+    },
+    "Minivan Car": {
+      prices: [700, 1200, 2500],
+      times: ["30 Minutes", "50 Minutes", "1h 30 Minutes"],
+    },
+    Microbus: {
+      prices: [1000, 1500, 2800],
+      times: ["40 Minutes", "1h", "1h 40 Minutes"],
+    },
+    "SUV Car": {
+      prices: [700, 1200, 2500],
+      times: ["30 Minutes", "50 Minutes", "1h 30 Minutes"],
+    },
+    "Mid Size SUV": {
+      prices: [800, 1300, 2400],
+      times: ["40 Minutes", "1h", "1h 30 Minutes"],
+    },
+    "Full Size SUV": {
+      prices: [1000, 1500, 2800],
+      times: ["50 Minutes", "1h 20 Minutes", "2h"],
+    },
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -80,24 +100,26 @@ const Appointment = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
-    const userEmail = localStorage.getItem("userEmail");
-  
+
+    const userEmail = sessionStorage.getItem("userEmail");
+
     if (!userEmail) {
       toast.error("Please log in to confirm your booking.");
       router.push("/login"); // Redirect to login page
       return;
     }
-  
+
     if (!selectedVehicle || !selectedPlan || !formData.timeSlot) {
-      setResponseMessage("Please select a vehicle type, pricing plan, and time slot.");
+      setResponseMessage(
+        "Please select a vehicle type, pricing plan, and time slot."
+      );
       toast.error("Please select a vehicle type, pricing plan, and time slot.");
       return;
     }
-  
+
     setIsSubmitting(true);
     setResponseMessage("");
-  
+
     try {
       const response = await fetch("/api", {
         method: "POST",
@@ -112,15 +134,15 @@ const Appointment = () => {
           extraFeatures,
         }),
       });
-  
+
       if (response.ok) {
         setResponseMessage("Booking confirmed!");
         toast.success("Booking confirmed!");
         setFormData({
           name: "",
-          email: "",
           phone: "",
           vehicleMake: "",
+          vehicleName: "",
           vehicleModel: "",
           date: "",
           timeSlot: "",
@@ -131,8 +153,12 @@ const Appointment = () => {
         setExtraFeatures([]);
       } else {
         const errorData = await response.json();
-        setResponseMessage(`Error: ${errorData.message || "Unable to confirm booking."}`);
-        toast.error(`Error: ${errorData.message || "Unable to confirm booking."}`);
+        setResponseMessage(
+          `Error: ${errorData.message || "Unable to confirm booking."}`
+        );
+        toast.error(
+          `Error: ${errorData.message || "Unable to confirm booking."}`
+        );
       }
     } catch (error) {
       console.error("Error:", error);
@@ -142,7 +168,6 @@ const Appointment = () => {
       setIsSubmitting(false);
     }
   };
-  
 
   return (
     <div className="py-8 px-4 md:px-16">
@@ -160,13 +185,17 @@ const Appointment = () => {
 
       {/* Vehicle Type Section */}
       <div className="mb-8">
-        <h2 className="text-xl md:text-2xl font-bold mb-4">Select Vehicle Type</h2>
+        <h2 className="text-xl md:text-2xl font-bold mb-4">
+          Select Vehicle Type
+        </h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
           {Object.keys(pricingOptions).map((type) => (
             <button
               key={type}
               className={`p-4 border rounded-md text-center text-sm md:text-base ${
-                selectedVehicle === type ? "bg-blue-500 text-white" : "bg-gray-100"
+                selectedVehicle === type
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-100"
               }`}
               onClick={() => handleVehicleSelect(type)}
             >
@@ -178,29 +207,42 @@ const Appointment = () => {
 
       {/* Pricing Plan Section */}
       <div className="mb-8">
-        <h2 className="text-xl md:text-2xl font-bold mb-4">Select Pricing Plan</h2>
+        <h2 className="text-xl md:text-2xl font-bold mb-4">
+          Select Pricing Plan
+        </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-          {selectedVehicle && pricingOptions[selectedVehicle].prices.map((price, index) => (
-            <button
-              key={index}
-              className={`p-4 border rounded-md text-center text-sm md:text-base ${
-                selectedPlan === price.toString() ? "bg-orange-500 text-white" : "bg-gray-100"
-              }`}
-              onClick={() => handlePlanSelect(price.toString())}
-            >
-              <h3 className="font-semibold">
-                {index === 0 ? "Basic Wash" : index === 1 ? "Full Wash" : "General Wash"}
-              </h3>
-              <p className="text-lg font-bold">{price}</p>
-              <p className="text-sm text-gray-500">{pricingOptions[selectedVehicle].times[index]}</p>
-            </button>
-          ))}
+          {selectedVehicle &&
+            pricingOptions[selectedVehicle].prices.map((price, index) => (
+              <button
+                key={index}
+                className={`p-4 border rounded-md text-center text-sm md:text-base ${
+                  selectedPlan === price.toString()
+                    ? "bg-orange-500 text-white"
+                    : "bg-gray-100"
+                }`}
+                onClick={() => handlePlanSelect(price.toString())}
+              >
+                <h3 className="font-semibold">
+                  {index === 0
+                    ? "Basic Wash"
+                    : index === 1
+                    ? "Full Wash"
+                    : "General Wash"}
+                </h3>
+                <p className="text-lg font-bold">{price}</p>
+                <p className="text-sm text-gray-500">
+                  {pricingOptions[selectedVehicle].times[index]}
+                </p>
+              </button>
+            ))}
         </div>
       </div>
 
       {/* Extra Features Section */}
       <div className="mb-8">
-        <h2 className="text-xl md:text-2xl font-bold mb-4">Choose Extra Features</h2>
+        <h2 className="text-xl md:text-2xl font-bold mb-4">
+          Choose Extra Features
+        </h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           {[
             "Tire Shine",
@@ -212,7 +254,9 @@ const Appointment = () => {
             <button
               key={feature}
               className={`p-4 border rounded-md text-center text-sm md:text-base ${
-                extraFeatures.includes(feature) ? "bg-orange-500 text-white" : "bg-gray-100"
+                extraFeatures.includes(feature)
+                  ? "bg-orange-500 text-white"
+                  : "bg-gray-100"
               }`}
               onClick={() => toggleExtraFeature(feature)}
             >
@@ -224,7 +268,9 @@ const Appointment = () => {
 
       {/* Booking Details Form */}
       <div>
-        <h2 className="text-xl md:text-2xl font-bold mb-4">Enter Your Details</h2>
+        <h2 className="text-xl md:text-2xl font-bold mb-4">
+          Enter Your Details
+        </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <input
@@ -236,10 +282,10 @@ const Appointment = () => {
               className="p-2 border rounded-md w-full text-sm md:text-base"
             />
             <input
-              type="email"
-              name="email"
-              placeholder="Email Address"
-              value={formData.email}
+              type="text"
+              name="vehicleName"
+              placeholder="Your Vehicle Name"
+              value={formData.vehicleName}
               onChange={handleInputChange}
               className="p-2 border rounded-md w-full text-sm md:text-base"
             />

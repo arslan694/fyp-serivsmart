@@ -5,21 +5,20 @@ import { usePathname } from "next/navigation";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [userEmail, setUserEmail] = useState(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
-    // Retrieve email from local storage on mount
-    const email = localStorage.getItem("userEmail");
-    setUserEmail(email);
+    // Initial fetch of userEmail from sessionStorage
+    setUserEmail(sessionStorage.getItem("userEmail"));
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("userEmail"); // Remove email from local storage
+    sessionStorage.removeItem("userEmail");
     setUserEmail(null); // Update state to reflect logout
   };
 
-  const getLinkClass = (path) =>
+  const getLinkClass = (path: string) =>
     pathname === path
       ? "text-orange-500 font-semibold"
       : "text-gray-700 hover:text-orange-500";

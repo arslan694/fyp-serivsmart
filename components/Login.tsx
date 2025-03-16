@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Navbar from "./Navbar"; // Import Navbar component
+import { log } from "console";
 
 const Login = () => {
   const router = useRouter();
@@ -13,7 +14,7 @@ const Login = () => {
 
   // Check if user is already logged in
   useEffect(() => {
-    const storedEmail = localStorage.getItem("userEmail");
+    const storedEmail = sessionStorage.getItem("userEmail");
     if (storedEmail) {
       setUser({ email: storedEmail }); // Store only email in state
     }
@@ -25,6 +26,9 @@ const Login = () => {
     setFormData({ ...formData, [name]: value });
   };
 
+
+  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -35,19 +39,18 @@ const Login = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-  
+
       const data = await response.json();
       setLoading(false);
-  
+
       if (!response.ok || !data.user) {
         toast.error(data.message || "Login failed!");
         return;
       }
-  
+
       setUser(data.user);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      localStorage.setItem("userEmail", data.user.email); 
-  
+      sessionStorage.setItem("userEmail", data.user.email);
+
       toast.success("Login successful! Redirecting...");
       setTimeout(() => {
         router.push(data.user.role === "superadmin" ? "/admin-dashboard" : "/");
@@ -62,7 +65,7 @@ const Login = () => {
   
   const handleLogout = () => {
     setUser (null);
-    localStorage.removeItem("user"); // Remove user from storage
+    sessionStorage.removeItem("user"); // Remove user from storage
     router.push("/login");
   };
 

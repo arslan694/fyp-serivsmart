@@ -13,6 +13,7 @@ export interface Appointment extends Document {
   selectedVehicle: string | null;
   selectedPlan: string | null;
   extraFeatures: string[];
+  status: string;
 }
 
 // Mongoose Schema for the Appointment model
@@ -67,6 +68,10 @@ const appointmentSchema = new Schema<Appointment>({
   extraFeatures: {
     type: [String],
     default: [],
+  },
+  status: {
+    type: String,
+    default: null,
   },
 });
 

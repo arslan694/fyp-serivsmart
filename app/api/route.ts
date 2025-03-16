@@ -36,3 +36,26 @@ export async function POST(req: Request) {
     await client.close();
   }
 }
+
+
+export async function GET() {
+  const client = new MongoClient(uri);
+
+  try {
+    await client.connect();
+    const database = client.db();
+    const collection = database.collection("appointments");
+
+    // Fetch all appointments from the database
+    const appointments = await collection.find({}).toArray();
+
+    return NextResponse.json(appointments, { status: 200 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ message: 'Error fetching appointments', error }, { status: 500 });
+  } finally {
+    await client.close();
+  }
+}
+
+
