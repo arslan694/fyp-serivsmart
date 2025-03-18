@@ -1,8 +1,11 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import ServicesTable from "../components/serviceTable";
 import AppointmentsTable from "../components/AppointmentsTable";
 import CompletedTable from "../components/CompletedTable";
+import CreateServiceModal from "../components/CreateServiceModal";
 
 const AdminDashboard = () => {
   const [services, setServices] = useState([
@@ -16,6 +19,7 @@ const AdminDashboard = () => {
     // Add more services here
   ]);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [appointments, setAppointments] = useState([
     {
       id: 1,
@@ -81,16 +85,46 @@ const AdminDashboard = () => {
         // Remove from active appointments and add to completed locally
         setCompletedAppointments([...completedAppointments, appointment]);
         setAppointments(appointments.filter((app) => app.id !== id));
+        toast.success("Appointment marked as done successfully!");
       } else {
         console.error("Failed to mark as done:", await response.json());
+        toast.error("Failed to mark appointment as done.");
       }
     } catch (error) {
       console.error("Error:", error);
+      toast.error("An error occurred while marking the appointment as done.");
     }
   };
 
   const handleDeleteAppointment = (id) => {
     setAppointments(appointments.filter((app) => app.id !== id));
+    toast.success("Appointment deleted successfully!");
+  };
+  const handleCreateService = async (newService) => {
+    try {
+      const response = await fetch("/api/services", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newService), // Ensure the data is stringified
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setServices([...services, data.service]); // Add the new service to the list
+        toast.success("Service created successfully!");
+      } else {
+        console.error("Failed to create service:", await response.json());
+        toast.error("Failed to create service.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("An error occurred while creating the service.");
+    }
+  };
+  const handleSuccess = () => {
+    // This function will be called when the service is successfully created
+    // Reset the form fields in the modal
+    setIsModalOpen(false); // Close the modal
   };
 
   return (
@@ -98,13 +132,28 @@ const AdminDashboard = () => {
       <h1 className="text-2xl font-bold mb-8">Admin Dashboard</h1>
 
       <div className="mb-12">
-        <h2 className="text-xl font-semibold mb-4">Services</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Services</h2>
+          <button
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+            onClick={() => setIsModalOpen(true)}
+          >
+            + Create Service
+          </button>
+        </div>
         <ServicesTable
           services={services}
           onDelete={handleDeleteService}
           onEdit={handleEditService}
         />
       </div>
+
+      <CreateServiceModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onCreate={handleCreateService}
+        onSuccess={handleSuccess} // Pass the success callback
+      />
 
       <div className="mb-12">
         <h2 className="text-xl font-semibold mb-4">Appointments</h2>
@@ -119,6 +168,19 @@ const AdminDashboard = () => {
         <h2 className="text-xl font-semibold mb-4">Completed Appointments</h2>
         <CompletedTable completedAppointments={completedAppointments} />
       </div>
+
+      {/* Toast Container */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </div>
   );
 };
