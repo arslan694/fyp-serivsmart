@@ -62,7 +62,6 @@ const ContactTable = () => {
                 <td className="py-4 px-6 text-gray-700">{contact.phone}</td>
                 <td className="py-4 px-6 text-gray-700">{contact.message}</td>
                 <td className="py-4 px-6 space-x-2">
-
                   <button className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg shadow-md transition-all">
                     Delete
                   </button>
