@@ -58,7 +58,8 @@ const Navbar = () => {
             Services
           </Link>
           <Link href="/shop" className={getLinkClass("/shop")}>Shop</Link>
-          <Link href="/news" className={getLinkClass("/news")}>News</Link>
+          <Link href="/contact" className={getLinkClass("/news")}>Contact Us</Link>
+          <Link href="/reviews" className={getLinkClass("/reviews")}>Reviews</Link>
         </div>
 
         <div className="flex flex-row gap-5">

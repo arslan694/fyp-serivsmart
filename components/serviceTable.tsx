@@ -59,7 +59,7 @@ const ServicesTable = () => {
     <div className="p-4">
       <div className="overflow-x-auto rounded-lg shadow-lg">
         <table className="min-w-full bg-white">
-          <thead className="bg-gradient-to-r from-blue-500 to-blue-600">
+          <thead className="bg-gradient-to-r from-red-500 to-red-600">
             <tr>
               <th className="py-3 px-6 text-left text-white font-semibold uppercase tracking-wider">
                 Service Name

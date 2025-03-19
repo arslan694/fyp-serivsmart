@@ -6,6 +6,9 @@ import ServicesTable from "../components/serviceTable";
 import AppointmentsTable from "../components/AppointmentsTable";
 import CompletedTable from "../components/CompletedTable";
 import CreateServiceModal from "../components/CreateServiceModal";
+import ReviewsTable from "./ReviewsTable";
+import ContactUs from "./contactus";
+import ContactTable from "./contactTable";
 
 const AdminDashboard = () => {
   const [services, setServices] = useState([
@@ -161,6 +164,24 @@ const AdminDashboard = () => {
           appointments={appointments}
           onMarkAsDone={handleMarkAsDone}
           onDelete={handleDeleteAppointment}
+        />
+      </div>
+
+      <div className="mb-12">
+        <h2 className="text-xl font-semibold mb-4">Reviews</h2>
+        <ReviewsTable
+          // appointments={appointments}
+          // onMarkAsDone={handleMarkAsDone}
+          // onDelete={handleDeleteAppointment}
+        />
+      </div>
+
+      <div className="mb-12">
+        <h2 className="text-xl font-semibold mb-4">Contact</h2>
+        <ContactTable
+          // appointments={appointments}
+          // onMarkAsDone={handleMarkAsDone}
+          // onDelete={handleDeleteAppointment}
         />
       </div>
 
