@@ -1,16 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import heroImage from "../public/images/appointment_hero.png";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useRouter } from "next/navigation"; // Import useRouter for redirection
+import { useRouter } from "next/navigation";
 
 const Appointment = () => {
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [extraFeatures, setExtraFeatures] = useState<string[]>([]);
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+  
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -25,12 +28,7 @@ const Appointment = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [responseMessage, setResponseMessage] = useState("");
 
-  // Mock function to check if the user is logged in
-  const isLoggedIn = () => {
-    const userEmail = sessionStorage.getItem("userEmail"); // Assuming user email is stored in sessionStorage
-    return userEmail !== null; // Return true if email exists
-  };
-
+  // Vehicle pricing options
   const pricingOptions = {
     "Sedan Car": {
       prices: [500, 1000, 2000],
@@ -58,6 +56,75 @@ const Appointment = () => {
     },
   };
 
+  // Generate all possible time slots (8AM - 8PM)
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 8; hour <= 20; hour++) {
+      const period = hour < 12 ? "AM" : "PM";
+      const displayHour = hour > 12 ? hour - 12 : hour;
+      slots.push(`${displayHour}:00 ${period}`);
+      slots.push(`${displayHour}:30 ${period}`);
+    }
+    return slots;
+  };
+
+  const allTimeSlots = generateTimeSlots();
+
+  // Fetch booked slots when date changes
+  useEffect(() => {
+    if (formData.date) {
+      fetchBookedSlots(formData.date);
+    } else {
+      setBookedSlots([]);
+    }
+  }, [formData.date]);
+
+// Change all API calls to use '/api' instead of '/api/appointments'
+const fetchBookedSlots = async (date: string) => {
+  setIsLoadingSlots(true);
+  try {
+    const response = await fetch(`/api?date=${date}`);
+    if (!response.ok) throw new Error('Failed to fetch slots');
+    const data = await response.json();
+    setBookedSlots(data.bookedSlots || []);
+  } catch (error) {
+    toast.error("Error checking availability");
+    console.error(error);
+  } finally {
+    setIsLoadingSlots(false);
+  }
+};
+
+  // Filter available slots
+  const getAvailableSlots = () => {
+    if (!formData.date) return allTimeSlots;
+    return allTimeSlots.filter(slot => !bookedSlots.includes(slot));
+  };
+
+  const availableSlots = getAvailableSlots();
+
+  // Find alternative slots when a slot is booked
+  const findAlternativeSlots = (bookedSlot: string) => {
+    const bookedIndex = allTimeSlots.indexOf(bookedSlot);
+    const alternatives = [];
+    
+    // Check next 3 available slots
+    for (let i = bookedIndex + 1; i < allTimeSlots.length && alternatives.length < 3; i++) {
+      if (availableSlots.includes(allTimeSlots[i])) {
+        alternatives.push(allTimeSlots[i]);
+      }
+    }
+    
+    // If not enough, check previous slots
+    for (let i = bookedIndex - 1; i >= 0 && alternatives.length < 3; i--) {
+      if (availableSlots.includes(allTimeSlots[i])) {
+        alternatives.unshift(allTimeSlots[i]);
+      }
+    }
+    
+    return alternatives;
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -66,7 +133,7 @@ const Appointment = () => {
 
   const handleVehicleSelect = (type: string) => {
     setSelectedVehicle(type);
-    setSelectedPlan(null); // Reset selected plan when vehicle type changes
+    setSelectedPlan(null);
   };
 
   const handlePlanSelect = (plan: string) => {
@@ -74,46 +141,87 @@ const Appointment = () => {
   };
 
   const toggleExtraFeature = (feature: string) => {
-    if (extraFeatures.includes(feature)) {
-      setExtraFeatures(extraFeatures.filter((f) => f !== feature));
-    } else {
-      setExtraFeatures([...extraFeatures, feature]);
-    }
+    setExtraFeatures(prev => 
+      prev.includes(feature) 
+        ? prev.filter(f => f !== feature) 
+        : [...prev, feature]
+    );
   };
 
-  const generateTimeSlots = () => {
-    const slots = [];
-    for (let hour = 8; hour <= 21; hour++) {
-      const period = hour < 12 ? "AM" : "PM";
-      const formattedHour = hour > 12 ? hour - 12 : hour;
-      slots.push(`${formattedHour}:00 ${period}`);
-      slots.push(`${formattedHour}:30 ${period}`);
+  const handleTimeSlotChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = e.target;
+    
+    // Check if selected slot is available
+    if (formData.date && bookedSlots.includes(value)) {
+      const alternatives = findAlternativeSlots(value);
+      toast.error(
+        <div>
+          <p>This time slot is already booked.</p>
+          <p className="font-semibold mt-2">Available slots around this time:</p>
+          <ul className="list-disc pl-5 mt-1">
+            {alternatives.map((slot, i) => (
+              <li 
+                key={i} 
+                className="cursor-pointer hover:text-blue-500"
+                onClick={() => {
+                  setFormData(prev => ({ ...prev, timeSlot: slot }));
+                  toast.dismiss();
+                }}
+              >
+                {slot}
+              </li>
+            ))}
+          </ul>
+        </div>,
+        { autoClose: 10000 }
+      );
+      return;
     }
-    return slots;
-  };
-
-  const timeSlots = generateTimeSlots();
-
-  const handleInputChangeTwo = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    
+    setFormData({ ...formData, timeSlot: value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Check if user is logged in
     const userEmail = sessionStorage.getItem("userEmail");
-
     if (!userEmail) {
       toast.error("Please log in to confirm your booking.");
-      router.push("/login"); // Redirect to login page
+      router.push("/login");
       return;
     }
 
+    // Validate selections
     if (!selectedVehicle || !selectedPlan || !formData.timeSlot) {
-      setResponseMessage(
-        "Please select a vehicle type, pricing plan, and time slot."
-      );
       toast.error("Please select a vehicle type, pricing plan, and time slot.");
+      return;
+    }
+
+    // Double-check slot availability
+    if (formData.date && bookedSlots.includes(formData.timeSlot)) {
+      const alternatives = findAlternativeSlots(formData.timeSlot);
+      toast.error(
+        <div>
+          <p>This time slot was just booked by someone else.</p>
+          <p className="font-semibold mt-2">Available slots around this time:</p>
+          <ul className="list-disc pl-5 mt-1">
+            {alternatives.map((slot, i) => (
+              <li 
+                key={i} 
+                className="cursor-pointer hover:text-blue-500"
+                onClick={() => {
+                  setFormData(prev => ({ ...prev, timeSlot: slot }));
+                  toast.dismiss();
+                }}
+              >
+                {slot}
+              </li>
+            ))}
+          </ul>
+        </div>,
+        { autoClose: 10000 }
+      );
       return;
     }
 
@@ -121,23 +229,21 @@ const Appointment = () => {
     setResponseMessage("");
 
     try {
-      const response = await fetch("/api", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const response = await fetch('/api', {  // Changed from '/api/appointments' to '/api'
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          email: userEmail, // Include user email in the booking data
+          email: sessionStorage.getItem("userEmail"),
           selectedVehicle,
           selectedPlan,
-          extraFeatures,
-        }),
+          extraFeatures
+        })
       });
 
       if (response.ok) {
-        setResponseMessage("Booking confirmed!");
         toast.success("Booking confirmed!");
+        // Reset form
         setFormData({
           name: "",
           phone: "",
@@ -151,18 +257,16 @@ const Appointment = () => {
         setSelectedVehicle(null);
         setSelectedPlan(null);
         setExtraFeatures([]);
+        // Refresh booked slots
+        if (formData.date) {
+          await fetchBookedSlots(formData.date);
+        }
       } else {
         const errorData = await response.json();
-        setResponseMessage(
-          `Error: ${errorData.message || "Unable to confirm booking."}`
-        );
-        toast.error(
-          `Error: ${errorData.message || "Unable to confirm booking."}`
-        );
+        toast.error(errorData.message || "Unable to confirm booking");
       }
     } catch (error) {
       console.error("Error:", error);
-      setResponseMessage("Error occurred while submitting the form.");
       toast.error("Error occurred while submitting the form.");
     } finally {
       setIsSubmitting(false);
@@ -206,13 +310,13 @@ const Appointment = () => {
       </div>
 
       {/* Pricing Plan Section */}
-      <div className="mb-8">
-        <h2 className="text-xl md:text-2xl font-bold mb-4">
-          Select Pricing Plan
-        </h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-          {selectedVehicle &&
-            pricingOptions[selectedVehicle].prices.map((price, index) => (
+      {selectedVehicle && (
+        <div className="mb-8">
+          <h2 className="text-xl md:text-2xl font-bold mb-4">
+            Select Pricing Plan
+          </h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+            {pricingOptions[selectedVehicle].prices.map((price, index) => (
               <button
                 key={index}
                 className={`p-4 border rounded-md text-center text-sm md:text-base ${
@@ -235,8 +339,9 @@ const Appointment = () => {
                 </p>
               </button>
             ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Extra Features Section */}
       <div className="mb-8">
@@ -280,6 +385,7 @@ const Appointment = () => {
               value={formData.name}
               onChange={handleInputChange}
               className="p-2 border rounded-md w-full text-sm md:text-base"
+              required
             />
             <input
               type="text"
@@ -288,6 +394,7 @@ const Appointment = () => {
               value={formData.vehicleName}
               onChange={handleInputChange}
               className="p-2 border rounded-md w-full text-sm md:text-base"
+              required
             />
             <input
               type="tel"
@@ -296,6 +403,7 @@ const Appointment = () => {
               value={formData.phone}
               onChange={handleInputChange}
               className="p-2 border rounded-md w-full text-sm md:text-base"
+              required
             />
             <input
               type="text"
@@ -304,6 +412,7 @@ const Appointment = () => {
               value={formData.vehicleMake}
               onChange={handleInputChange}
               className="p-2 border rounded-md w-full text-sm md:text-base"
+              required
             />
             <input
               type="text"
@@ -312,6 +421,7 @@ const Appointment = () => {
               value={formData.vehicleModel}
               onChange={handleInputChange}
               className="p-2 border rounded-md w-full text-sm md:text-base"
+              required
             />
             <input
               type="date"
@@ -319,20 +429,28 @@ const Appointment = () => {
               value={formData.date}
               onChange={handleInputChange}
               className="p-2 border rounded-md w-full text-sm md:text-base"
+              min={new Date().toISOString().split('T')[0]}
+              required
             />
 
             <select
               name="timeSlot"
               value={formData.timeSlot}
-              onChange={handleInputChangeTwo}
+              onChange={handleTimeSlotChange}
               className="p-2 border rounded-md w-full text-sm md:text-base"
+              disabled={!formData.date || isLoadingSlots}
+              required
             >
               <option value="">Select Time Slot</option>
-              {timeSlots.map((slot, index) => (
-                <option key={index} value={slot}>
-                  {slot}
-                </option>
-              ))}
+              {isLoadingSlots ? (
+                <option>Loading available slots...</option>
+              ) : (
+                availableSlots.map((slot, index) => (
+                  <option key={index} value={slot}>
+                    {slot}
+                  </option>
+                ))
+              )}
             </select>
           </div>
           <textarea
@@ -359,7 +477,6 @@ const Appointment = () => {
         )}
       </div>
 
-      {/* Toast Container */}
       <ToastContainer
         position="top-right"
         autoClose={5000}
