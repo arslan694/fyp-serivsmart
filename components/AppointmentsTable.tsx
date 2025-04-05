@@ -90,7 +90,7 @@ const AppointmentsTable = () => {
                 <td className="py-4 px-6 text-gray-700">{appointment.vehicleName}</td>
                 <td className="py-4 px-6 text-gray-700">{appointment.vehicleModel}</td>
                 <td className="py-4 px-6 text-gray-700">{appointment.date}</td>
-                <td className="py-4 px-6 text-gray-700">{appointment.slot}</td>
+                <td className="py-4 px-6 text-gray-700">{appointment.timeSlot}</td>
                 <td className="py-4 px-6 text-gray-700">{appointment.comment}</td>
                 <td className="py-4 px-6 text-gray-700">{appointment.email}</td>
                 <td className="py-4 px-6 text-gray-700">{appointment.selectedVehicle}</td>
